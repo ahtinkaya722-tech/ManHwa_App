@@ -1,0 +1,74 @@
+/* navbar.css */
+
+/* Base link style */
+.nav-link {
+  position: relative;
+  color: #d1d5db; /* gray-300 */
+  font-size: clamp(12px, 2.7vw, 18px);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeInUp 0.6s forwards;
+}
+
+.navbuttonsList {
+  max-width: 100%;
+}
+
+@media (max-width: 420px) {
+  .nav-link {
+    font-size: 12px;
+  }
+}
+
+/* Hover effect */
+.nav-link:hover {
+  color: #FF9F1C;
+}
+
+/* Underline animation */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: #FF9F1C;
+  transition: 0.8s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-link:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.nav-link:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.nav-link:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.nav-link:nth-child(4) {
+  animation-delay: 0.4s;
+}
