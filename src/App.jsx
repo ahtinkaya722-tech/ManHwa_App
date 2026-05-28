@@ -14,6 +14,7 @@ return (
         <Routes>
        
             <Route path="/" element={<Home/>}/>
+            <Route path="*" element={<Home/>}/>
                {/* <Route path="/trending" element={} />
              <Route path="/latest" element={} />
              <Route path="/library" element={} /> */}
