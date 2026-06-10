@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import { useNavigate } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/navigation";
 
 const PopularSlider = () => {
+  const navigate = useNavigate();
   const [mangaData, setMangaData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,6 +39,33 @@ const PopularSlider = () => {
 
     getPopularManga();
   }, []);
+
+  const handleMangaClick = (manga) => {
+    const title =
+      manga.attributes?.title?.en ||
+      Object.values(manga.attributes?.title || {})[0] ||
+      "Untitled";
+    const coverRelation = manga.relationships?.find(
+      (rel) => rel.type === "cover_art"
+    );
+    const file = coverRelation?.attributes?.fileName;
+    const coverUrl = file
+      ? `https://uploads.mangadex.org/covers/${manga.id}/${file}.512.jpg`
+      : "https://via.placeholder.com/512x720";
+    
+    const formattedManga = {
+      id: manga.id,
+      title: title,
+      description: manga.attributes?.description?.en || "No description available.",
+      coverImage: coverUrl,
+      tags: manga.attributes?.tags?.slice(0, 3).map(tag => tag.attributes.name.en) || [],
+      year: manga.attributes?.year,
+      status: manga.attributes?.status,
+      // episodes will be fetched in the detail page if missing
+    };
+
+    navigate(`/manga/${manga.id}`, { state: formattedManga });
+  };
 
   if (loading) {
     return (
@@ -112,7 +141,10 @@ const PopularSlider = () => {
 
             return (
               <SwiperSlide key={manga.id}>
-                <div className="group flex cursor-pointer flex-col">
+                <div 
+                  className="group flex cursor-pointer flex-col"
+                  onClick={() => handleMangaClick(manga)}
+                >
                   <div className="relative aspect-[2/3] w-full overflow-hidden rounded border border-transparent bg-zinc-900 transition duration-200 group-hover:border-[#FF9F1C]/50">
                     <img
                       src={coverUrl}
@@ -142,3 +174,4 @@ const PopularSlider = () => {
 };
 
 export default PopularSlider;
+

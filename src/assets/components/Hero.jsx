@@ -1,6 +1,7 @@
-import { React, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { useNavigate } from "react-router-dom";
 
 import "swiper/css";
 import "swiper/css/effect-fade";
@@ -55,7 +56,9 @@ const defaultSlides = [
   },
 ];
 
-const Hero = () => {
+const Hero = ({ openInfo }) => {
+
+  const navigate = useNavigate();
   const [slides, setSlides] = useState(defaultSlides);
 
   useEffect(() => {
@@ -65,50 +68,68 @@ const Hero = () => {
           "https://api.mangadex.org/manga?limit=5&includes[]=cover_art&order[followedCount]=desc"
         );
 
+
+
         const data = await res.json();
 
         // get cover relationship
-        const formattedSlides = data.data.map((manga, index) => {
-          const coverRel = manga.relationships.find(
-            (rel) => rel.type === "cover_art"
-          );
+        const formattedSlides = await Promise.all(
+          data.data.map(async (manga, index) => {
+            const chapterRes = await fetch(
+              `https://api.mangadex.org/chapter?manga=${manga.id}&translatedLanguage[]=en&order[chapter]=asc&limit=10`
+            );
 
-          const coverFile = coverRel?.attributes?.fileName;
+            const chapterData = await chapterRes.json();
+            const episodes = chapterData.data.map((ch) => ({
+              id: ch.id,
+              chapter: ch.attributes.chapter,
+              title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,
+            }));
 
-          return {
-            id: manga.id,
-            title:
-              manga.attributes.title.en ||
-              Object.values(manga.attributes.title)[0],
+            const coverRel = manga.relationships.find(
+              (rel) => rel.type === "cover_art"
+            );
 
-            description:
-              manga.attributes.description.en?.slice(0, 220) ||
-              "No description available.",
+            const coverFile = coverRel?.attributes?.fileName;
 
-            coverImage: coverFile
-              ? `https://uploads.mangadex.org/covers/${manga.id}/${coverFile}.512.jpg`
-              : "https://via.placeholder.com/1200x600",
+            return {
+              id: manga.id,
+              title:
+                manga.attributes.title.en ||
+                Object.values(manga.attributes.title)[0],
 
-            banner: defaultSlides[index]?.banner,
+              description:
+                manga.attributes.description.en?.slice(0, 220) ||
+                "No description available.",
 
-            tags: manga.attributes.tags
-              .slice(0, 3)
-              .map((tag) => tag.attributes.name.en),
-          };
-        });
+              coverImage: coverFile
+                ? `https://uploads.mangadex.org/covers/${manga.id}/${coverFile}.512.jpg`
+                : "https://via.placeholder.com/1200x600",
+
+              banner: defaultSlides[index]?.banner,
+              tags: manga.attributes.tags
+                .slice(0, 3)
+                .map((tag) => tag.attributes.name.en),
+              episodes,
+            };
+          })
+        );
 
         setSlides(formattedSlides);
       } catch (error) {
         console.log(error);
       }
+
+      
+
     };
 
-    fetchHeroSectionManga();
+fetchHeroSectionManga();
   }, []);
 
-  return (
+return (
 
-    <div className="relative"> 
+  <div className="relative">
     <Swiper
       modules={[Autoplay, EffectFade, Pagination]}
       autoplay={{
@@ -127,7 +148,7 @@ const Hero = () => {
             style={{
               backgroundImage: `url(${slide.banner || slide.coverImage})`,
               backgroundPosition: "top center",
-              backgroundSize:"cover"
+              backgroundSize: "cover"
             }}
           >
             {/* Overlay */}
@@ -158,11 +179,19 @@ const Hero = () => {
 
               {/* Buttons */}
               <div className="flex gap-3 mt-6">
-                <button className="bg-[#FF9F1C] hover:bg-[#e08b14] text-black font-bold text-xs px-6 py-2.5 rounded-sm transition tracking-wider uppercase">
+                <button onClick={() => { 
+                  const token = localStorage.getItem("token");
+                  if(!token){
+                    alert("Please sign in to read this manga.");
+                    navigate("/signin");
+                    return
+                  }
+                  
+                  navigate(`/manga/${slide.id}`, { state: slide }) }} className="bg-[#FF9F1C] hover:bg-[#e08b14] text-black font-bold text-xs px-6 py-2.5 rounded-sm transition tracking-wider uppercase">
                   Read Now
                 </button>
 
-                <button className="bg-black/40 hover:bg-black/60 border border-zinc-600 font-bold text-xs px-6 py-2.5 rounded-sm transition tracking-wider uppercase">
+                <button onClick={() => openInfo(slide)} className="bg-black/40 hover:bg-black/60 border border-zinc-600 font-bold text-xs px-6 py-2.5 rounded-sm transition tracking-wider uppercase">
                   More Info
                 </button>
               </div>
@@ -172,10 +201,10 @@ const Hero = () => {
       ))}
     </Swiper>
 
-    </div>
+  </div>
 
 
-  );
+);
 };
 
 export default Hero;

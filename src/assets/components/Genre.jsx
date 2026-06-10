@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import { useNavigate } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/navigation";
 import { fetchMangaByGenre } from "../../api/apiFetchManga";
@@ -30,6 +31,7 @@ const getCoverImage = (manga) => {
 };
 
 const Genre = () => {
+  const navigate = useNavigate();
   const [activeGenre, setActiveGenre] = useState(GENRE_LIST[0]);
   const [mangas, setMangas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,20 @@ const Genre = () => {
 
     loadManga();
   }, [activeGenre.id]);
+
+  const handleMangaClick = (manga) => {
+    const formattedManga = {
+      id: manga.id,
+      title: getTitle(manga),
+      description: manga.attributes?.description?.en || "No description available.",
+      coverImage: getCoverImage(manga).replace('.256.jpg', '.512.jpg'), // Get higher res for detail page
+      tags: manga.attributes?.tags?.slice(0, 3).map(tag => tag.attributes.name.en) || [],
+      year: manga.attributes?.year,
+      status: manga.attributes?.status,
+    };
+
+    navigate(`/manga/${manga.id}`, { state: formattedManga });
+  };
 
   return (
     <section className="w-full bg-gradient-to-b from-black/70 via-black/50 to-[#121214] px-2 py-6 text-white">
@@ -120,7 +136,10 @@ const Genre = () => {
 
             return (
               <SwiperSlide key={manga.id}>
-                <div className="group flex cursor-pointer flex-col">
+                <div 
+                  className="group flex cursor-pointer flex-col"
+                  onClick={() => handleMangaClick(manga)}
+                >
                   <div className="relative aspect-[2/3] w-full overflow-hidden rounded bg-zinc-900">
                     <img
                       src={getCoverImage(manga)}
@@ -150,3 +169,4 @@ const Genre = () => {
 };
 
 export default Genre;
+

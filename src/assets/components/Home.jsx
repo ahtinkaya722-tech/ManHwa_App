@@ -2,10 +2,10 @@ import PopularSlider from "./PopularSlider";
 import Hero from "./Hero";
 import Genre from "./Genre";
 
-const Home = () => {
+const Home = ({openInfo}) => {
   return (
     <div>
-         <Hero/>
+         <Hero openInfo={openInfo}/>
         <PopularSlider/>
         <Genre/>
     </div>
